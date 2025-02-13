@@ -1,9 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
+import { useAuthStore } from './store/authStore';
+import { AuthClient } from './api-client/AuthClient';
 import FileView from './components/FileView.vue';
 import ModelView from './components/ModelView.vue';
 import RequestView from './components/RequestView.vue';
 import TokenView from './components/TokenView.vue';
+
+const baseURL = `${import.meta.env.VITE_AUTH_URL}`;
+const authClient = new AuthClient(baseURL);
+const authStore = useAuthStore();
 
 const tabs = ref([
   {index: 0, name: 'Файлы', selected: false},
@@ -12,9 +18,18 @@ const tabs = ref([
   {index: 3, name: 'Запросы', selected: false},
 ])
 
-const currentTab = ref(null)
+const scope = ref([
+  {id: 1, name: 'GIGACHAT_API_PERS'},
+  {id: 2, name: 'GIGACHAT_API_B2B'},
+  {id: 3, name: 'GIGACHAT_API_CORP'},
+])
 
-const componentsMap = (index) => {
+const clientId = ref('')
+const clientSecret = ref('')
+const currentScope = ref('')
+const currentTab = ref<number>()
+
+const componentsMap = (index : number) => {
   const r = [FileView, TokenView, ModelView, RequestView]
   return r[index];
 }
@@ -28,14 +43,35 @@ const selectTab = (tab) => {
     }
   })
 }
+
+const getAuthToken = async () => {
+  if (!authStore.isAuthenticated && authClient){
+    await authClient.getToken(clientId.value, clientSecret.value, currentScope.value)
+  }
+}
+
 </script>
 
 <template>
   <div class="explorer__container">
     <div class="explorer__auth-line">
-      <input placeholder="client_id"/>
-      <input placeholder="client_secret"/>
-      <button>Получить доступ</button>
+      <input 
+        placeholder="client_id"
+        v-model="clientId"
+      />
+      <input 
+        placeholder="client_secret"
+        v-model="clientSecret"
+      />
+      <select v-model="currentScope">
+        <option 
+          v-for="s of scope" 
+          :key="s.id"
+        >
+          {{ s.name }}
+        </option>
+      </select>
+      <button @click="getAuthToken">Получить доступ</button>
     </div>
     <div class="explorer__token-line">
       <p>JWT</p>
@@ -53,7 +89,10 @@ const selectTab = (tab) => {
           {{ tab.name }}
         </button>
       </div>
-      <div class="explorer__tabs-body">
+      <div 
+        v-if="currentTab" 
+        class="explorer__tabs-body" 
+      >
         <component
           :is="componentsMap(currentTab)"
         />

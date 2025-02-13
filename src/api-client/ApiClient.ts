@@ -1,12 +1,10 @@
-
+import axios from 'axios';
 
 export class ApiClient{
-  constructor(client_id: string, client_secret: string){
+  axios: any;
+
+  constructor(){
     
-  }
-
-  async getToken(){
-
   }
 
   /* Files */
