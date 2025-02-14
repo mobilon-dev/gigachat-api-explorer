@@ -26,13 +26,15 @@ const allowGetToken = computed(() => {
   return false
 })
 
+let timer
 const getAuthToken = async () => {
   if (allowGetToken.value && authClient){
     authStore.token = ''
     const response = await authClient.getToken(clientId.value, clientSecret.value, currentScope.value)
     if (response){
+      clearTimeout(timer)
       authStore.token = response.access_token
-      setTimeout(() => {
+      timer = setTimeout(() => {
         alert('Необходимо обновить токен')
         authStore.token = ''
       }, 1000 * 60 * 30)

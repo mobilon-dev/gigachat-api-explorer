@@ -13,15 +13,30 @@ export class ApiClient{
       },
     });
 
+    this.axios.interceptors.request.use((config) => {
+      console.log(config)
+      const pre = '[ApiClient][Request] '
+      const url = ' ' + config.baseURL + config.url + ' '
+      const data = config.data ? '{' + config.data + '}' : ""
+      const logStore = useLogStore()
+      logStore.appendLog(pre + config.method + url + data)
+      return config
+    })
+
     this.axios.interceptors.response.use(function (response: any) {
       const logStore = useLogStore()
-      const data = response.config.data ? ' data: ' + response.config.data : ""
-      logStore.appendLog(response.config.method + ' ' + response.config.baseURL + response.config.url + data + ' ' + response.status + ': ' + response.statusText)
+      const pre = '[ApiClient][Response] '
+      const url = ' ' + response.config.baseURL + response.config.url + ' '
+      const data = response.config.data ? '{' + response.config.data + '}' : ""
+      const resp = JSON.stringify(response.data)
+      logStore.appendLog(pre + response.config.method + url + data + ' ' + response.status + ': ' + response.statusText + ' ' + resp)
       return response.data;
       }, function (error: any) {
         console.log(error)
+        const pre = '[ApiClient][Error] '
+        const url = ' ' + error.config.baseURL + error.config.url + ' '
         const logStore = useLogStore()
-        logStore.appendLog(error.config.method + ' ' + error.config.baseURL + error.config.url + ' ' + error.code + ':' + error.message)
+        logStore.appendLog( pre + error.config.method + url + error.code + ':' + error.message)
         return false
        }
     ); 
@@ -41,7 +56,7 @@ export class ApiClient{
 
   async uploadFile(file: File){
     const formData = new FormData();
-    formData.append('files', file)
+    formData.append('file', file)
     formData.append('purpose','general')
     console.log(formData)
     const response = await this.axios.post(`/files`,formData);

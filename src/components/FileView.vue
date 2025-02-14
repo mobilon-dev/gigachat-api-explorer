@@ -24,7 +24,6 @@ const selectFile = (file) => {
   files.value.data.forEach((f) => {
     f.selected = false
     if (f == file){
-      console.log('ww')
       f.selected = true
       selectedId.value = f.id
     }
@@ -34,6 +33,20 @@ const selectFile = (file) => {
 const deleteFile = async () => {
   if (selectedId.value != ''){
     const response = await apiClient.deleteFile(selectedId.value)
+    console.log(response)
+  }
+}
+
+const downloadFile = async () => {
+  if (selectedId.value != ''){
+    const response = await apiClient.downloadFile(selectedId.value)
+    console.log(response)
+  }
+}
+
+const aboutFile = async () => {
+  if (selectedId.value != ''){
+    const response = await apiClient.getFileInfo(selectedId.value)
     console.log(response)
   }
 }
@@ -74,6 +87,18 @@ onMounted(async () => {
       @click="deleteFile"
     >
       Удалить файл
+    </button>
+    <button 
+      v-if="selectedId != ''"
+      @click="downloadFile"
+    >
+      Скачать файл
+    </button>
+    <button 
+      v-if="selectedId != ''"
+      @click="aboutFile"
+    >
+      О файле
     </button>
 
   </div>
