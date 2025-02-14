@@ -1,4 +1,7 @@
 <script setup>
+import { inject } from 'vue';
+const apiClient = inject('apiClient')
+console.log(apiClient)
 </script>
 
 <template>

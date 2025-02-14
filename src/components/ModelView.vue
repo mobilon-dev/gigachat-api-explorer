@@ -1,4 +1,8 @@
 <script setup>
+import { inject } from 'vue';
+const apiClient = inject('apiClient')
+console.log(apiClient)
+apiClient.getModels()
 </script>
 
 <template>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useLogStore } from '../store/logStore';
 
 export class ApiClient{
   axios: any;
@@ -7,15 +8,27 @@ export class ApiClient{
     this.axios = axios.create({
       baseURL: url,
       headers: {
-        Authorization: `${token}`,
+        'Accept': 'application/json', 
+        Authorization: `Bearer ${token}`,
       },
     });
+
+    this.axios.interceptors.response.use(function (response: any) {
+      return response;
+      }, function (error: any) {
+        console.log(error)
+        const logStore = useLogStore()
+        logStore.appendLog(error.config.method + ' ' + error.config.baseURL + error.config.url + ' ' + error.code + ':' + error.message)
+        return false
+       }
+    ); 
   }
 
   /* Files */
 
   async getFileList(){
     const response = await this.axios.get(`/files`);
+
   }
 
   async getFileInfo(fileId: string){
@@ -47,7 +60,8 @@ export class ApiClient{
   /* Models */
 
   async getModels(){
-    const response = await this.axios.get(`/models`);
+    const response = await this.axios.get(`/models`)
+    console.log(response)
   }
 
   /* Requests */

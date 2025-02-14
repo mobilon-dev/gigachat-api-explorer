@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { provide, ref } from 'vue';
 import { ApiClient } from '../api-client/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import FileView from './FileView.vue';
@@ -11,6 +11,7 @@ const authStore = useAuthStore();
 const baseURL = `${import.meta.env.VITE_API_URL}`;
 const token = authStore.token;
 const apiClient = new ApiClient(baseURL, token);
+provide('apiClient', apiClient)
 
 const tabs = ref([
   {index: 1, name: 'Файлы', selected: false},
