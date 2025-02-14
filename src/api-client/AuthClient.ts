@@ -5,7 +5,6 @@ import { useLogStore } from '../store/logStore';
 
 export class AuthClient{
   axios: any;
-  logStore = useLogStore()
   constructor(url: string){
     this.axios = axios.create({
       baseURL: url,
@@ -15,23 +14,24 @@ export class AuthClient{
   async getToken(client_id: string, client_secret: string, scope: string){
     const authorization = 'Basic ' + btoa(client_id + ':' + client_secret)
     const rquid = v4()
-    console.log(authorization, rquid, scope)
-    const config = {
-      headers: {
+
+    const response = await this.axios
+      .post('',{scope: scope}, {headers: {
         authorization: authorization,
         rquid: rquid, 
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
-      }
-    }
-
-    const response = await this.axios
-      .post('',{scope: scope}, {config})
+      }})
+      .then(response => {
+        const logStore = useLogStore()
+        logStore.appendLog(response.config.method + ' ' + response.config.baseURL + response.config.data + ' ' + response.status + ': ' + response.statusText)
+        return response.data
+      })
       .catch(function (error) {
         const logStore = useLogStore()
-        logStore.appendLog(error.config.method + ' ' + error.config.baseURL + error.config.data + ' ' + error.code + ':' + error.message)
+        logStore.appendLog(error.config.method + ' ' + error.config.baseURL + error.config.data + ' ' + error.code + ':' + error.response.data.message)
+        return false
       });
-    console.log(response)
-    //return response.data
+    return response
   }
 }
