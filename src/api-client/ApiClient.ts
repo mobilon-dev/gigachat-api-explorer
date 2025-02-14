@@ -14,7 +14,10 @@ export class ApiClient{
     });
 
     this.axios.interceptors.response.use(function (response: any) {
-      return response;
+      const logStore = useLogStore()
+      const data = response.config.data ? ' data: ' + response.config.data : ""
+      logStore.appendLog(response.config.method + ' ' + response.config.baseURL + response.config.url + data + ' ' + response.status + ': ' + response.statusText)
+      return response.data;
       }, function (error: any) {
         console.log(error)
         const logStore = useLogStore()
@@ -28,40 +31,50 @@ export class ApiClient{
 
   async getFileList(){
     const response = await this.axios.get(`/files`);
-
+    return response
   }
 
   async getFileInfo(fileId: string){
     const response = await this.axios.get(`/files/${fileId}`);
+    return response
   }
 
-  async uploadFile(){
-    const response = await this.axios.post(`/files`);
+  async uploadFile(file: File){
+    const formData = new FormData();
+    formData.append('files', file)
+    formData.append('purpose','general')
+    console.log(formData)
+    const response = await this.axios.post(`/files`,formData);
+    return response
   }
 
   async downloadFile(fileId: string){
     const response = await this.axios.get(`/files/${fileId}/content`);
+    return response
   }
 
   async deleteFile(fileId: string){
     const response = await this.axios.post(`/files/${fileId}/delete`);
+    return response
   }
 
   /* Tokens */
 
-  async getAvailableTokens(){
+  async getTokenCount(){
     const response = await this.axios.post(`/tokens/count`);
+    return response
   }
 
-  async getTokenCount(){
+  async getAvailableTokens(){
     const response = await this.axios.get(`/balance`);
+    return response
   }
 
   /* Models */
 
   async getModels(){
     const response = await this.axios.get(`/models`)
-    console.log(response)
+    return response
   }
 
   /* Requests */

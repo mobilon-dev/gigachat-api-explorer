@@ -1,13 +1,21 @@
-<script setup>
-import { inject } from 'vue';
-const apiClient = inject('apiClient')
-console.log(apiClient)
-apiClient.getModels()
+<script setup lang="ts">
+import { inject, onMounted, ref } from 'vue';
+import { ApiClient } from '../api-client/ApiClient';
+
+const apiClient = inject('apiClient') as ApiClient
+const models = ref()
+
+onMounted(async () => {
+  models.value = await apiClient.getModels()
+  console.log(models.value)
+})
 </script>
 
 <template>
   <div class="container">
-    <span>models</span>
+    <div v-if="models">
+      <p v-for="m of models.data">{{ m.id }}</p>
+    </div>
   </div>
 </template>
 
