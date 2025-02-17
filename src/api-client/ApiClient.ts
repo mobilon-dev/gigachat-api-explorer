@@ -94,7 +94,18 @@ export class ApiClient{
 
   /* Requests */
 
-  async sendRequest(model: string, messages: object[], function_call: object|null = null){}
+  async sendRequest(model: string, messages: object[], stream: boolean, update_interval: number|null = null){
+    const data = JSON.stringify({
+      'model' : model,
+      'messages' : messages,
+      'stream' : stream,
+      'update_interval': update_interval,
+    })
+    console.log(data)
+    const response = await this.axios.post(`/chat/completions`,data)
+    console.log(response)
+    return response
+  }
 
   async createEmbedding(model: string, input: string){}
 }

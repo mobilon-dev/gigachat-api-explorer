@@ -6,7 +6,6 @@ export const useLogStore = defineStore('log', () => {
   const log = ref<string[]>([]);
 
   function appendLog(str: string){
-    console.log(str)
     log.value.push(str)
   }
 

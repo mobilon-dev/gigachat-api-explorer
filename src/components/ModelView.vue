@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
-import { ApiClient } from '../api-client/ApiClient';
+import { onMounted, ref } from 'vue';
+import { useContentStore } from '../store/contentStore';
 
-const apiClient = inject('apiClient') as ApiClient
 const models = ref()
 
 onMounted(async () => {
-  models.value = await apiClient.getModels()
+  const contentStore = useContentStore()
+  models.value = contentStore.models
   console.log(models.value)
 })
 </script>

@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue';
+import { provide, ref, onMounted } from 'vue';
 import { ApiClient } from '../api-client/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import FileView from './FileView.vue';
 import ModelView from './ModelView.vue';
 import RequestView from './RequestView.vue';
 import TokenView from './TokenView.vue';
-
-const authStore = useAuthStore();
-const baseURL = `${import.meta.env.VITE_API_URL}`;
-const token = authStore.token;
-const apiClient = new ApiClient(baseURL, token);
-provide('apiClient', apiClient)
+import { useContentStore } from '../store/contentStore';
 
 const tabs = ref([
   {index: 1, name: 'Файлы', selected: false},
@@ -37,6 +32,17 @@ const selectTab = (tab) => {
     }
   })
 }
+
+onMounted(async () => {
+  const authStore = useAuthStore();
+  const baseURL = `${import.meta.env.VITE_API_URL}`;
+  const token = authStore.token;
+  const apiClient = new ApiClient(baseURL, token);
+  provide('apiClient', apiClient)
+  const contentStore = useContentStore();
+  contentStore.setFiles(await apiClient.getFileList())
+  contentStore.setModels(await apiClient.getModels())
+})
 
 </script>
 

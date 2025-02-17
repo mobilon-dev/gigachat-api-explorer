@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
 import { ApiClient } from '../api-client/ApiClient';
+import { useContentStore } from '../store/contentStore';
 
+const contentStore = useContentStore()
 const apiClient = inject('apiClient') as ApiClient
 const files = ref()
 const selectedId = ref('')
@@ -34,6 +36,8 @@ const deleteFile = async () => {
   if (selectedId.value != ''){
     const response = await apiClient.deleteFile(selectedId.value)
     console.log(response)
+    contentStore.setFiles(await apiClient.getFileList())
+    files.value = contentStore.files
   }
 }
 
@@ -52,7 +56,8 @@ const aboutFile = async () => {
 }
 
 onMounted(async () => {
-  files.value = await apiClient.getFileList()
+  //files.value = await apiClient.getFileList()
+  files.value = contentStore.files
   console.log(files.value)
 })
 </script>
