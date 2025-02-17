@@ -12,5 +12,6 @@ import ExplorerApp from './ExplorerApp.vue';
 .container {
   width: 70vw;
   margin: 30px auto;
+  font-family: 'Montserrat', sans-serif;
 }
 </style>

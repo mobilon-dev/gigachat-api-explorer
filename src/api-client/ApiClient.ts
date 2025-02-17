@@ -63,9 +63,22 @@ export class ApiClient{
     return response
   }
 
-  async downloadFile(fileId: string){
-    const response = await this.axios.get(`/files/${fileId}/content`);
-    return response
+  async downloadFile(fileId: string, filename: string, created_at: number){
+    await this.axios
+      .get(`/files/${fileId}/content`, {responseType: 'blob',})
+      .then(response => {
+        const file = new File([response], filename, {lastModified: created_at})
+        const a = document.createElement('a')
+        const url = URL.createObjectURL(file)
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);  
+        }, 10)
+      })
   }
 
   async deleteFile(fileId: string){
