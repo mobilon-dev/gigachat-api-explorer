@@ -10,10 +10,9 @@ export class AuthClient{
       baseURL: url,
     })
     this.axios.interceptors.request.use((config) => {
-      console.log(config.data)
-      const pre = '[AuthClient][Request] '
-      const url = ' ' + config.baseURL + config.url + ' '
-      const data = config.data ? '{' + JSON.stringify(config.data) + '}' : ""
+      const pre = '**[AuthClient][Request]** '
+      const url = ' ' + `${import.meta.env.VITE_LOG_AUTH_URL}` + config.url + ' '
+      const data = config.data ? '\n' + JSON.stringify(config.data, null, ' ') : ""
       const logStore = useLogStore()
       logStore.appendLog(pre + config.method + url + data)
       return config
@@ -32,15 +31,15 @@ export class AuthClient{
         'Content-Type': 'application/x-www-form-urlencoded',
       }})
       .then(response => {
-        const pre = '[AuthClient][Response] '
+        const pre = '**[AuthClient][Response]** '
         const logStore = useLogStore()
-        logStore.appendLog(pre + response.config.method + ' ' + response.config.baseURL + response.config.data + ' ' + response.status + ': ' + response.statusText)
+        logStore.appendLog(pre + response.config.method + ' ' + `${import.meta.env.VITE_LOG_AUTH_URL}` + ' ' + response.status + ': ' + response.statusText)
         return response.data
       })
       .catch(function (error) {
-        const pre = '[AuthClient][Error] '
+        const pre = '**[AuthClient][Error]** '
         const logStore = useLogStore()
-        logStore.appendLog(pre + error.config.method + ' ' + error.config.baseURL + error.config.data + ' ' + error.code + ':' + error.response.data.message)
+        logStore.appendLog(pre + error.config.method + ' ' + `${import.meta.env.VITE_LOG_AUTH_URL}` + error.config.data + ' ' + error.code + ':' + error.response.data.message)
         return false
       });
     return response

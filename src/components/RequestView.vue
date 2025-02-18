@@ -4,7 +4,7 @@ import { useContentStore } from '../store/contentStore';
 import { ApiClient } from '../api-client/ApiClient';
 
 const contentStore = useContentStore()
-const selectedModel = ref()
+const selectedModel = ref('')
 const apiClient = inject('apiClient') as ApiClient
 const messages = ref<Message[]>([])
 const stream = ref(false)
@@ -52,7 +52,13 @@ const sendRequest = async () => {
     }
   })
   const r = await apiClient.sendRequest(selectedModel.value, messages.value, stream.value, interval.value)
-  response.value = r.choices[0].message.content
+  if (!stream.value){
+    response.value = r.choices[0].message.content
+  }
+  else{
+    console.log(r)
+  }
+  
 }
 
 onMounted(() => {
@@ -68,38 +74,41 @@ onMounted(() => {
 <template>
   <div class="request__container">
     <div class="request__model">
-      <div>
-        <span>Модель</span>
-        <select v-model="selectedModel">
+      <div style="display: flex;">
+        <span style="margin: auto;" >Модель</span>
+        <select style="margin-left: 5px;" class="form-select" v-model="selectedModel">
+          <option value="" selected disabled>Выберите модель</option>
           <option v-for="m of contentStore.models.data">
             {{ m.id }}
           </option>
         </select>
       </div>
-      <button @click="newMessage">Добавить сообщение</button>
+      <button class="btn btn-primary" @click="newMessage">Добавить сообщение</button>
     </div>
     <div 
       class="request__message"
       v-for="(m, index) of messages"
     >
-      <select v-model="m.role">
+      <select class="form-select" v-model="m.role">
+        <option :value="null" disabled>Роль</option>
         <option v-for="r of roles">{{ r }}</option>
       </select>
-      <textarea v-model="m.content"></textarea>
-      <select v-model="m.attachments">
-        <option :value="null">Нет</option>
+      <textarea class="form-control" v-model="m.content"></textarea>
+      <select class="form-select" v-model="m.attachments">
+        <option :value="null">Файл</option>
         <option v-for="f of contentStore.files.data" :value="f.id">{{ f.filename }}</option>
       </select>
-      <button @click="removeMessage(index)">
+      <button class="btn btn-light" @click="removeMessage(index)">
         Удалить
       </button>
     </div>
     <div class="request__controls">
       <div>
         <span>Потоковый вывод ответа</span>
-        <input type="checkbox" v-model="stream"/>
+        <input style="margin-left: 5px;" type="checkbox" v-model="stream"/>
       </div>
       <button 
+        class="btn btn-primary"
         :disabled="!allowSend"
         @click="sendRequest"
       >
@@ -108,12 +117,11 @@ onMounted(() => {
     </div>
     <div v-if="stream">
       <span>Интервал</span>
-      <input type="number" min="1" max='5' step="1" v-model="interval"/>
+      <input style="margin-left: 5px;"  type="number" min="0" max='5' step="0.1" v-model="interval"/>
     </div>
-    
     <hr>
-    <span>Ответ</span>
-    <div class="request__response">
+    <strong>Ответ</strong>
+    <div class="request__response form-control">
       {{ response }}
     </div>
   </div>
@@ -135,6 +143,11 @@ onMounted(() => {
       width: 100%;
       resize: vertical;
     }
+    select,button{
+      max-height: 50px;
+      line-height: 30px;
+    }
+
   }
 
   &__controls{
@@ -145,8 +158,10 @@ onMounted(() => {
   &__response{
     margin-top: 5px;
     min-height: 50px;
-    border: 1px solid;
     border-radius: 5px;
+    white-space: break-spaces;
+    max-height: 300px;
+    overflow: auto;
   }
 }
 </style>

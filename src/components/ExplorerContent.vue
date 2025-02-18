@@ -40,7 +40,24 @@ onMounted(async () => {
   const apiClient = new ApiClient(baseURL, token);
   provide('apiClient', apiClient)
   const contentStore = useContentStore();
-  contentStore.setFiles(await apiClient.getFileList())
+  
+  const files = await apiClient.getFileList()
+  if (files.data && files.data.length > 0){
+    console.log('files')
+    files.data.forEach(f => {
+    f.created_at = new Date(f.created_at * 1000).toISOString()
+    const sizeMeasurement = ['б', 'Кб', "Мб", "Гб"]
+    let size = f.bytes
+    let index = 0
+    while (size > 1024) {
+      size = size / 1024
+      index++
+    }
+    f.bytes = size.toFixed(2) + sizeMeasurement[index]
+  });
+  }
+  console.log(files)
+  contentStore.setFiles(files)
   contentStore.setModels(await apiClient.getModels())
 })
 
@@ -48,17 +65,22 @@ onMounted(async () => {
 
 <template>
     <div class="explorer__tabs">
-      <div class="explorer__tabs-header">
-        <button 
+      <ul class="nav nav-pills" >
+        <li 
           v-for="tab of tabs"
-          class="explorer__tab"
-          :class="{'explorer__selected-tab' : tab.selected}"
+          class="nav-item"
+          style="cursor: pointer;"
           :key="tab.index"
           @click="selectTab(tab)"
         >
-          {{ tab.name }}
-        </button>
-      </div>
+          <a 
+            class="nav-link"
+            :class="{'active' : tab.selected}"
+          >
+            {{ tab.name }}
+          </a>
+        </li>
+      </ul>
       <div 
         v-if="currentTab" 
         class="explorer__tabs-body" 
@@ -73,25 +95,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
   .explorer{
-
-    &__tab{
-      font-size: 18px;
-      border: none;
-      display: inline-block;
-      background: #fff;
-      padding: 10px 25px;
-      text-align: center;
-      cursor: pointer;
-      margin-bottom: -3px;
-      border-bottom: 3px solid #eee;
+    &__tabs-body{
+      margin-top: 10px;
     }
-
-    &__selected-tab{
-      color: #5fa03a;
-	    border-bottom: 3px solid #5fa03a;
-    }
-
-    
-
   }
+
 </style>

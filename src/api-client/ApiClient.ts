@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { useLogStore } from '../store/logStore';
-
 export class ApiClient{
   axios: any;
 
@@ -14,9 +13,8 @@ export class ApiClient{
     });
 
     this.axios.interceptors.request.use((config) => {
-      console.log(config)
-      const pre = '[ApiClient][Request] '
-      const url = ' ' + config.baseURL + config.url + ' '
+      const pre = '**[ApiClient][Request]** '
+      const url = ' ' + `${import.meta.env.VITE_LOG_API_URL}` + config.url + ' '
       const data = config.data ? '{' + config.data + '}' : ""
       const logStore = useLogStore()
       logStore.appendLog(pre + config.method + url + data)
@@ -25,16 +23,16 @@ export class ApiClient{
 
     this.axios.interceptors.response.use(function (response: any) {
       const logStore = useLogStore()
-      const pre = '[ApiClient][Response] '
-      const url = ' ' + response.config.baseURL + response.config.url + ' '
-      const data = response.config.data ? '{' + response.config.data + '}' : ""
-      const resp = JSON.stringify(response.data)
-      logStore.appendLog(pre + response.config.method + url + data + ' ' + response.status + ': ' + response.statusText + ' ' + resp)
+      const pre = '**[ApiClient][Response]** '
+      const url = ' ' + `${import.meta.env.VITE_LOG_API_URL}` + response.config.url + ' '
+      const data = response.config.data ? '\n' + response.config.data : ""
+      const resp = JSON.stringify(response.data,null,' ')
+      
+      logStore.appendLog(pre + response.config.method + url + data + ' ' + response.status + ': ' + response.statusText + '\n' + resp)
       return response.data;
       }, function (error: any) {
-        console.log(error)
-        const pre = '[ApiClient][Error] '
-        const url = ' ' + error.config.baseURL + error.config.url + ' '
+        const pre = '**[ApiClient][Error]** '
+        const url = ' ' + `${import.meta.env.VITE_LOG_API_URL}` + error.config.url + ' '
         const logStore = useLogStore()
         logStore.appendLog( pre + error.config.method + url + error.code + ':' + error.message)
         return false
@@ -114,9 +112,7 @@ export class ApiClient{
       'stream' : stream,
       'update_interval': update_interval,
     })
-    console.log(data)
     const response = await this.axios.post(`/chat/completions`,data)
-    console.log(response)
     return response
   }
 

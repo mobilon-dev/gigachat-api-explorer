@@ -16,9 +16,10 @@ const scope = ref([
   {id: 3, name: 'GIGACHAT_API_CORP'},
 ])
 
-const clientId = ref('')
-const clientSecret = ref('')
+const clientId = ref(localStorage.clientId)
+const clientSecret = ref(localStorage.clientSecret)
 const currentScope = ref('')
+const showConsole = ref(true)
 
 const allowGetToken = computed(() => {
   if (clientId.value != '' && clientSecret.value != '' && currentScope.value != '')
@@ -34,6 +35,8 @@ const getAuthToken = async () => {
     if (response){
       clearTimeout(timer)
       authStore.token = response.access_token
+      localStorage.setItem('clientId', clientId.value)
+      localStorage.setItem('clientSecret', clientSecret.value)
       timer = setTimeout(() => {
         alert('Необходимо обновить токен')
         authStore.token = ''
@@ -53,14 +56,17 @@ const copyTokenToClipboard = () => {
   <div class="explorer__container">
     <div class="explorer__auth-line">
       <input 
+        class="form-control"
         placeholder="client_id"
         v-model="clientId"
       />
       <input 
+        class="form-control"
         placeholder="client_secret"
         v-model="clientSecret"
       />
-      <select v-model="currentScope">
+      <select class="form-select" v-model="currentScope">
+        <option value="" selected disabled>Режим доступа</option>
         <option 
           v-for="s of scope" 
           :key="s.id"
@@ -71,18 +77,42 @@ const copyTokenToClipboard = () => {
       <button
         :disabled="!allowGetToken"
         @click="getAuthToken"
+        class="btn btn-secondary"
       >
         Получить доступ
       </button>
     </div>
     <div v-if="authStore.token" class="explorer__token-line">
-      <p class="explorer__token">{{authStore.token}}</p>
-      <button @click="copyTokenToClipboard">Копировать</button>
+      <p  class="explorer__token form-control">{{authStore.token}}</p>
+      <button 
+        @click="copyTokenToClipboard"
+        class="btn btn-secondary"
+      >
+        Копировать
+      </button>
     </div>
     <ExplorerContent v-if="authStore.isAuthenticated" />
-    <p>Консоль</p>
-    <div class="explorer__console-container">
-      <p v-for="log of logStore.log">{{ log }}</p>
+    <hr>
+    <strong style="display: block; margin-bottom: 5px;">Консоль</strong>
+    <div class="explorer__console-controls">
+      <button 
+        v-if="logStore.log.length > 0"
+        @click="logStore.resetLog()"
+        class="btn btn-secondary"
+      >
+        Очистить
+      </button>
+      <button 
+        v-if="logStore.log.length > 0"
+        @click="showConsole = !showConsole"
+        class="btn btn-secondary"
+      >
+        {{showConsole ? 'Скрыть' : 'Раскрыть'}}
+      </button>
+    </div>
+    
+    <div v-if="showConsole" id="console" class="explorer__console-container form-control">
+      <p v-html="log" v-for="log of logStore.log"></p>
     </div>
   </div>
 </template>
@@ -95,7 +125,6 @@ const copyTokenToClipboard = () => {
   .explorer{
 
     &__container{
-      border: 1px solid;
       padding: 20px;
     }
 
@@ -110,7 +139,7 @@ const copyTokenToClipboard = () => {
     &__token{
       overflow: hidden;
       text-overflow: ellipsis;
-      margin: 0;
+      margin: auto;
       display: -webkit-box;
       -webkit-line-clamp: 1;
       line-clamp: 1;
@@ -122,7 +151,7 @@ const copyTokenToClipboard = () => {
     
 
     &__console-container{
-      border: 1px solid;
+      margin-top: 10px;
       min-height: 50px;
       max-height: 300px;
       overflow-y: scroll;
@@ -130,10 +159,18 @@ const copyTokenToClipboard = () => {
       flex-direction: column;
       gap: 5px;
       padding: 5px;
-
+      
       p{
         margin: 0;
+        margin-left: 7px;
+        white-space: break-spaces;
       }
+    }
+
+    &__console-controls{
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
     }
   }
 </style>
