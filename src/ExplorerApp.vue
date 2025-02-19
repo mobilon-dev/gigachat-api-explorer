@@ -20,11 +20,19 @@ const clientId = ref(localStorage.clientId)
 const clientSecret = ref(localStorage.clientSecret)
 const currentScope = ref('')
 const showConsole = ref(true)
+const s = ref(0)
+const m = ref(0)
 
 const allowGetToken = computed(() => {
   if (clientId.value != '' && clientSecret.value != '' && currentScope.value != '')
     return true
   return false
+})
+
+const elapsedTime = computed(() => {
+  let minutes = m.value < 10 ? "0" + m.value : m.value;
+  let seconds = s.value < 10 ? "0" + s.value : s.value;
+  return minutes + ':' + seconds
 })
 
 let timer
@@ -34,6 +42,8 @@ const getAuthToken = async () => {
     const response = await authClient.getToken(clientId.value, clientSecret.value, currentScope.value)
     if (response){
       clearTimeout(timer)
+      s.value = 59
+      m.value = 29
       authStore.token = response.access_token
       localStorage.setItem('clientId', clientId.value)
       localStorage.setItem('clientSecret', clientSecret.value)
@@ -41,6 +51,18 @@ const getAuthToken = async () => {
         alert('Необходимо обновить токен')
         authStore.token = ''
       }, 1000 * 60 * 30)
+      let interval = setInterval(() => {
+        s.value -= 1
+        if (s.value == 0){
+          s.value = 59
+          m.value -= 1
+          if (m.value == -1){
+            m.value = 0
+            s.value = 0
+            clearInterval(interval)
+          }
+        }
+      }, 1000)
     }
       
   }
@@ -84,6 +106,7 @@ const copyTokenToClipboard = () => {
     </div>
     <div v-if="authStore.token" class="explorer__token-line">
       <p  class="explorer__token form-control">{{authStore.token}}</p>
+      <span>{{ elapsedTime }}</span>
       <button 
         @click="copyTokenToClipboard"
         class="btn btn-secondary"

@@ -7,6 +7,8 @@ export const useContentStore = defineStore('content', () => {
   const files = ref<any>([])
   const models = ref<any>([])
 
+  const modelResponse = ref('')
+
   const setFiles = (newFiles) => {
     files.value = newFiles
   }
@@ -15,11 +17,17 @@ export const useContentStore = defineStore('content', () => {
     models.value = newModels
   }
 
+  const streamProcessing = (content: string) => {
+    modelResponse.value += content
+  }
+
   return {
     files,
     models,
     isLoading,
+    modelResponse,
     setFiles,
     setModels,
+    streamProcessing,
   };
 });

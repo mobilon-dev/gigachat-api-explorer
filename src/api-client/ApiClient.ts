@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useLogStore } from '../store/logStore';
+import { useAuthStore } from '../store/authStore';
 import { useContentStore } from '../store/contentStore';
-
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 export class ApiClient{
   axios: any;
 
@@ -125,16 +126,62 @@ export class ApiClient{
 
   async sendRequest(model: string, messages: object[], stream: boolean, update_interval: number|null = null){
     const contentStore = useContentStore()
-    contentStore.isLoading = true
+    const authStore = useAuthStore()
+    
+    contentStore.modelResponse = ''
     const data = JSON.stringify({
       'model' : model,
       'messages' : messages,
       'stream' : stream,
       'update_interval': update_interval,
-    })
-    const response = await this.axios.post(`/chat/completions`,data)
-    contentStore.isLoading = false
-    return response
+    }, null,' ')
+    if (!stream){
+      contentStore.isLoading = true
+      const response = await this.axios.post(`/chat/completions`,data)
+      contentStore.isLoading = false
+      contentStore.modelResponse = response.choices[0].message.content
+    }
+    else{
+      const pre = '**[ApiClient][Request]** '
+      const url = ' ' + `${import.meta.env.VITE_LOG_API_URL}` + '/chat/completions' + ' '
+      const logStore = useLogStore()
+      logStore.appendLog(pre + 'post' + url + data)
+      await fetchEventSource(`${import.meta.env.VITE_API_URL}` + '/chat/completions',{
+        method: "POST",
+        headers: {
+          'Accept': 'application/json', 
+          Authorization: `Bearer ${authStore.token}`,
+        },
+        body: data,
+        //@ts-ignore
+        onopen(response) {
+          console.log(response)
+          const pre = '**[ApiClient][Response]** '
+          const url = ' ' + `${import.meta.env.VITE_LOG_API_URL}` + '/chat/completions' + ' '
+          const logStore = useLogStore()
+          logStore.appendLog(pre + 'post' + url + ' ' +response.status + ': ' + response.statusText)
+        },
+        onmessage(ev) {
+          const pre = '**[ApiClient][SSE]** '
+          if (ev.data != '[DONE]'){
+            const m = JSON.parse(ev.data).choices[0].delta.content
+            const data = JSON.parse(ev.data)
+            const jsonM = JSON.stringify(data,null,' ')
+            const logStore = useLogStore()
+            logStore.appendLog(pre + ' ' + jsonM)
+            if ((typeof m) == 'string')
+              contentStore.streamProcessing(m)
+          }
+          else if (ev.data == '[DONE]'){
+            const logStore = useLogStore()
+            logStore.appendLog(pre + ' ' + ev.data)
+          }
+        },
+        onerror(err) {
+          console.log("There was an error from server", err);
+        },
+      })
+    }
   }
 
   async createEmbedding(model: string, input: string){}

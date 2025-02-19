@@ -10,8 +10,6 @@ const messages = ref<Message[]>([])
 const stream = ref(false)
 const interval = ref(0)
 
-const response = ref('')
-
 interface Message {
   role: any
   content: string
@@ -21,8 +19,8 @@ interface Message {
 const allowSend = computed(() => {
   if (!selectedModel.value) return false
   for (let m of messages.value){
-    if (!m.role) return false
-    if (m.content == '' && !m.attachments) return false
+    if (!m.role || (m.content == '' && !m.attachments))
+      return false
   }
   return true
 })
@@ -51,22 +49,16 @@ const sendRequest = async () => {
       m.attachments = arr
     }
   })
-  const r = await apiClient.sendRequest(selectedModel.value, messages.value, stream.value, interval.value)
-  if (!stream.value){
-    response.value = r.choices[0].message.content
-  }
-  else{
-    console.log(r)
-  }
-  
+  await apiClient.sendRequest(selectedModel.value, messages.value, stream.value, interval.value)
 }
 
 onMounted(() => {
-    messages.value.push({
-      role: null,
-      content: '',
-      attachments: null,
-    })
+  messages.value.push({
+    role: null,
+    content: '',
+    attachments: null,
+  })
+  contentStore.modelResponse = ''
 })
 
 </script>
@@ -122,7 +114,7 @@ onMounted(() => {
     <hr>
     <strong>Ответ</strong>
     <div class="request__response form-control">
-      {{ response }}
+      {{ contentStore.modelResponse }}
     </div>
   </div>
 </template>
