@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { useLogStore } from '../store/logStore';
+import { useContentStore } from '../store/contentStore';
+
 export class ApiClient{
   axios: any;
 
@@ -43,21 +45,30 @@ export class ApiClient{
   /* Files */
 
   async getFileList(){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const response = await this.axios.get(`/files`);
+    contentStore.isLoading = false
     return response
   }
 
   async getFileInfo(fileId: string){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const response = await this.axios.get(`/files/${fileId}`);
+    contentStore.isLoading = false
     return response
   }
 
   async uploadFile(file: File){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const formData = new FormData();
     formData.append('file', file)
     formData.append('purpose','general')
     console.log(formData)
     const response = await this.axios.post(`/files`,formData);
+    contentStore.isLoading = false
     return response
   }
 
@@ -86,13 +97,20 @@ export class ApiClient{
 
   /* Tokens */
 
-  async getTokenCount(){
-    const response = await this.axios.post(`/tokens/count`);
+  async getTokenCount(model: string, input: string){
+    const data = JSON.stringify({
+      "model" : model,
+      "input" : input,
+    })
+    const response = await this.axios.post(`/tokens/count`, data);
     return response
   }
 
   async getAvailableTokens(){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const response = await this.axios.get(`/balance`);
+    contentStore.isLoading = false
     return response
   }
 
@@ -106,6 +124,8 @@ export class ApiClient{
   /* Requests */
 
   async sendRequest(model: string, messages: object[], stream: boolean, update_interval: number|null = null){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const data = JSON.stringify({
       'model' : model,
       'messages' : messages,
@@ -113,6 +133,7 @@ export class ApiClient{
       'update_interval': update_interval,
     })
     const response = await this.axios.post(`/chat/completions`,data)
+    contentStore.isLoading = false
     return response
   }
 

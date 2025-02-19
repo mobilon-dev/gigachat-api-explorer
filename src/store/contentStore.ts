@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 export const useContentStore = defineStore('content', () => {
 
+  const isLoading = ref(false)
   const files = ref<any>([])
   const models = ref<any>([])
 
@@ -17,6 +18,7 @@ export const useContentStore = defineStore('content', () => {
   return {
     files,
     models,
+    isLoading,
     setFiles,
     setModels,
   };

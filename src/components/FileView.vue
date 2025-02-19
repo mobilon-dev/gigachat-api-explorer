@@ -18,9 +18,17 @@ const triggerFileUpload = () => {
 
 const onFileSelected = async () => {
   if (fileInput.value?.files){
-    await apiClient.uploadFile(fileInput.value?.files[0])
-    contentStore.setFiles(await apiClient.getFileList())
-    files.value = contentStore.files
+    console.log(fileInput.value.files[0])
+    const _30mb = 3145280
+    const _15mb = 15728640
+    const type = fileInput.value.files[0].type
+    const size = fileInput.value.files[0].size
+    if ((type.indexOf('image') != -1 && size < _15mb) || size < _30mb){
+      await apiClient.uploadFile(fileInput.value?.files[0])
+      contentStore.setFiles(await apiClient.getFileList())
+      files.value = contentStore.files
+    }
+    else alert('На загружаемые файлы действует ограничение: изображение не более 15Мб, документ не более 30Мб')
   }
 };
 
@@ -75,6 +83,7 @@ onMounted(async () => {
       style="display: none;"
       type="file"
       @change="onFileSelected"
+      accept=".txt,.doc,.docx,.pdf,.jpg,.png,.tiff,.bmp"
     >
     <div v-if="files">
       <div class="fileview__table" v-if="files.data.length > 0">

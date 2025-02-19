@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {v4} from 'uuid'
 import { useLogStore } from '../store/logStore';
-
+import { useContentStore } from '../store/contentStore';
 
 export class AuthClient{
   axios: any;
@@ -20,6 +20,8 @@ export class AuthClient{
   }
 
   async getToken(client_id: string, client_secret: string, scope: string){
+    const contentStore = useContentStore()
+    contentStore.isLoading = true
     const authorization = 'Basic ' + btoa(client_id + ':' + client_secret)
     const rquid = v4()
 
@@ -42,6 +44,7 @@ export class AuthClient{
         logStore.appendLog(pre + error.config.method + ' ' + `${import.meta.env.VITE_LOG_AUTH_URL}` + error.config.data + ' ' + error.code + ':' + error.response.data.message)
         return false
       });
+    contentStore.isLoading = false
     return response
   }
 }
