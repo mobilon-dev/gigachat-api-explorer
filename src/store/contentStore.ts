@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-
+import { ref, watch } from 'vue';
+import { marked } from 'marked';
 export const useContentStore = defineStore('content', () => {
 
   const isLoading = ref(false)
@@ -18,7 +18,13 @@ export const useContentStore = defineStore('content', () => {
   }
 
   const streamProcessing = (content: string) => {
-    modelResponse.value += content
+    const parsed = marked.parse(content)
+    modelResponse.value += parsed as string
+  }
+
+  const setModelResponse = async (content: string) => {
+    const parsed = await marked.parse(content)
+    modelResponse.value = parsed as string
   }
 
   return {
@@ -29,5 +35,6 @@ export const useContentStore = defineStore('content', () => {
     setFiles,
     setModels,
     streamProcessing,
+    setModelResponse,
   };
 });

@@ -7,6 +7,7 @@ import ModelView from './ModelView.vue';
 import RequestView from './RequestView.vue';
 import TokenView from './TokenView.vue';
 import { useContentStore } from '../store/contentStore';
+import { useLogStore } from '../store/logStore';
 
 const tabs = ref([
   {index: 1, name: 'Файлы', selected: false},
@@ -36,10 +37,13 @@ const selectTab = (tab) => {
 onMounted(async () => {
   const authStore = useAuthStore();
   const baseURL = `${import.meta.env.VITE_API_URL}`;
+  const logURL = `${import.meta.env.VITE_LOG_API_URL}`
   const token = authStore.token;
-  const apiClient = new ApiClient(baseURL, token);
-  provide('apiClient', apiClient)
   const contentStore = useContentStore();
+  const logStore = useLogStore()
+  const apiClient = new ApiClient(logURL, baseURL, token, contentStore, logStore);
+  provide('apiClient', apiClient)
+  
   
   const files = await apiClient.getFileList()
   if (files.data && files.data.length > 0){

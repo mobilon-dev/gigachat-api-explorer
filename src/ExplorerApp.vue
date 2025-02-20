@@ -6,9 +6,10 @@ import { AuthClient } from './api-client/AuthClient';
 import ExplorerContent from './components/ExplorerContent.vue';
 
 const baseURL = `${import.meta.env.VITE_AUTH_URL}`;
-const authClient = new AuthClient(baseURL);
+const logURL = `${import.meta.env.VITE_LOG_AUTH_URL}`
 const authStore = useAuthStore();
 const logStore = useLogStore();
+const authClient = new AuthClient(logURL, baseURL, logStore);
 
 const scope = ref([
   {id: 1, name: 'GIGACHAT_API_PERS'},
@@ -60,12 +61,19 @@ const getAuthToken = async () => {
             m.value = 0
             s.value = 0
             clearInterval(interval)
+            alert('Необходимо обновить токен')
+            authStore.token = ''
           }
         }
       }, 1000)
     }
       
   }
+}
+
+const hrefDoc = () => {
+  const url = 'https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/gigachat-api'
+  window.open(url, '_blank')?.focus();
 }
 
 const copyTokenToClipboard = () => {
@@ -76,6 +84,15 @@ const copyTokenToClipboard = () => {
 
 <template>
   <div class="explorer__container">
+    <div class="explorer__header">
+      <h4>GigaChat API Explorer</h4>
+      <button 
+        class="btn btn-secondary"
+        @click="hrefDoc"
+      >
+        Документация
+      </button>
+    </div>
     <div class="explorer__auth-line">
       <input 
         class="form-control"
@@ -151,7 +168,7 @@ const copyTokenToClipboard = () => {
       padding: 20px;
     }
 
-    &__auth-line, &__token-line{
+    &__auth-line, &__token-line, &__header{
       display: flex;
       gap: 5px;
       width: 100%;

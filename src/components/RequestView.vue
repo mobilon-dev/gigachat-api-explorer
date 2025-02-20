@@ -113,8 +113,10 @@ onMounted(() => {
     </div>
     <hr>
     <strong>Ответ</strong>
-    <div class="request__response form-control">
-      {{ contentStore.modelResponse }}
+    <div 
+      v-html="contentStore.modelResponse" 
+      class="request__response form-control"
+    >
     </div>
   </div>
 </template>

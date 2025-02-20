@@ -1,9 +1,11 @@
 <script setup>
 import ExplorerApp from './ExplorerApp.vue';
 import Loader from './components/Loader.vue';
+import { useAuthStore } from './store/authStore';
 import { useContentStore } from './store/contentStore';
 
 const contentStore = useContentStore()
+const authStore = useAuthStore()
 </script>
 
 <template> 
@@ -12,7 +14,7 @@ const contentStore = useContentStore()
     <ExplorerApp />
     <Transition name="fade">
       <div
-        v-if="contentStore.isLoading"
+        v-if="contentStore.isLoading || authStore.isLoading"
         class="loader-overlay"
       >
         <Loader />
