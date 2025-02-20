@@ -42,6 +42,7 @@ const removeMessage = (index) => {
 }
 
 const sendRequest = async () => {
+  contentStore.resetModelResponse()
   messages.value.forEach(m => {
     if (m.attachments){
       const arr : any = []
@@ -49,7 +50,25 @@ const sendRequest = async () => {
       m.attachments = arr
     }
   })
-  await apiClient.sendRequest(selectedModel.value, messages.value, stream.value, interval.value)
+  if (stream.value){
+    contentStore.isLoading = true
+    const response = await apiClient.sendStreamRequest(selectedModel.value, messages.value, stream.value, interval.value)
+    contentStore.isLoading = false
+    const inter = setInterval(() => {
+      if (response.length == 0){
+        clearInterval(inter)
+      }
+      else 
+        contentStore.streamProcessing(response.shift() as string)
+    }, 200)
+  }
+  else if (!stream.value){
+    contentStore.isLoading = true
+    const response = await apiClient.sendRequest(selectedModel.value, messages.value)
+    contentStore.isLoading = false
+    contentStore.setModelResponse(response.choices[0].message.content)
+  }
+  
 }
 
 onMounted(() => {
@@ -58,7 +77,7 @@ onMounted(() => {
     content: '',
     attachments: null,
   })
-  contentStore.modelResponse = ''
+  contentStore.resetModelResponse()
 })
 
 </script>
@@ -116,8 +135,7 @@ onMounted(() => {
     <div 
       v-html="contentStore.modelResponse" 
       class="request__response form-control"
-    >
-    </div>
+    />
   </div>
 </template>
 
@@ -152,10 +170,12 @@ onMounted(() => {
   &__response{
     margin-top: 5px;
     min-height: 50px;
+    height: 200px;
+    max-height: 1000px;
     border-radius: 5px;
     white-space: break-spaces;
-    max-height: 300px;
     overflow: auto;
+    resize: vertical;
   }
 }
 </style>

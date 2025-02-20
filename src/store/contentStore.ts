@@ -8,6 +8,7 @@ export const useContentStore = defineStore('content', () => {
   const models = ref<any>([])
 
   const modelResponse = ref('')
+  const unparsedModelResponce = ref('')
 
   const setFiles = (newFiles) => {
     files.value = newFiles
@@ -18,13 +19,18 @@ export const useContentStore = defineStore('content', () => {
   }
 
   const streamProcessing = (content: string) => {
-    const parsed = marked.parse(content)
-    modelResponse.value += parsed as string
+    unparsedModelResponce.value += content
+    setModelResponse(unparsedModelResponce.value)
   }
 
-  const setModelResponse = async (content: string) => {
-    const parsed = await marked.parse(content)
+  const setModelResponse = (content: string) => {
+    const parsed = marked.parse(content)
     modelResponse.value = parsed as string
+  }
+
+  const resetModelResponse = () => {
+    modelResponse.value = ''
+    unparsedModelResponce.value = ''
   }
 
   return {
@@ -36,5 +42,6 @@ export const useContentStore = defineStore('content', () => {
     setModels,
     streamProcessing,
     setModelResponse,
+    resetModelResponse,
   };
 });

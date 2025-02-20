@@ -58,7 +58,9 @@ const downloadFile = async () => {
 
 const aboutFile = async () => {
   if (selectedFile.value){
+    contentStore.isLoading = true
     const response = await apiClient.getFileInfo(selectedFile.value.id)
+    contentStore.isLoading = false
     fileInfo.value = response
     openFileInfo.value = true
   }

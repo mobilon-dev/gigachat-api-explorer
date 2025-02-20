@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
+import { useContentStore } from '../store/contentStore';
 import { ApiClient } from '../api-client/ApiClient';
 
 const apiClient = inject('apiClient') as ApiClient
 const tokens = ref()
 
 onMounted(async () => {
+  const contentStore = useContentStore()
+  contentStore.isLoading = true
   tokens.value = await apiClient.getAvailableTokens()
-  console.log(tokens.value)
+  contentStore.isLoading = false
 })
 </script>
 

@@ -41,7 +41,7 @@ onMounted(async () => {
   const token = authStore.token;
   const contentStore = useContentStore();
   const logStore = useLogStore()
-  const apiClient = new ApiClient(logURL, baseURL, token, contentStore, logStore);
+  const apiClient = new ApiClient(logURL, baseURL, token, logStore);
   provide('apiClient', apiClient)
   
   
@@ -61,8 +61,10 @@ onMounted(async () => {
   });
   }
   console.log(files)
+  contentStore.isLoading = true
   contentStore.setFiles(files)
   contentStore.setModels(await apiClient.getModels())
+  contentStore.isLoading = false
 })
 
 </script>
