@@ -91,15 +91,6 @@ export class ApiClient{
 
   /* Tokens */
 
-  async getTokenCount(model: string, input: string){
-    const data = JSON.stringify({
-      "model" : model,
-      "input" : input,
-    })
-    const response = await this.axios.post(`/tokens/count`, data);
-    return response
-  }
-
   async getAvailableTokens(){
     const response = await this.axios.get(`/balance`);
     return response
@@ -140,7 +131,6 @@ export class ApiClient{
 
     const logStore = this.logStore
     const logUrl = this.logUrl
-
     const response = <string[]>[]
 
     await fetchEventSource(this.url + '/chat/completions',{
@@ -174,9 +164,6 @@ export class ApiClient{
       },
     })
     return response
-    
   }
-
-  async createEmbedding(model: string, input: string){}
 
 }

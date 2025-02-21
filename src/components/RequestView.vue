@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, computed } from 'vue';
+import { inject, onMounted, ref, computed, watch, nextTick, unref } from 'vue';
 import { useContentStore } from '../store/contentStore';
 import { ApiClient } from '../api-client/ApiClient';
 
@@ -9,6 +9,7 @@ const apiClient = inject('apiClient') as ApiClient
 const messages = ref<Message[]>([])
 const stream = ref(false)
 const interval = ref(0)
+const refResponse = ref<HTMLElement>()
 
 interface Message {
   role: any
@@ -60,16 +61,29 @@ const sendRequest = async () => {
       }
       else 
         contentStore.streamProcessing(response.shift() as string)
-    }, 200)
+    }, interval.value * 1000)
   }
   else if (!stream.value){
     contentStore.isLoading = true
     const response = await apiClient.sendRequest(selectedModel.value, messages.value)
     contentStore.isLoading = false
     contentStore.setModelResponse(response.choices[0].message.content)
-  }
-  
+  } 
 }
+
+watch(
+  () => {contentStore.modelResponse},
+  () => {
+    if (stream.value){
+      nextTick(() => {
+        const element = unref(refResponse)
+        if (element)
+          element.scrollTop = element?.scrollHeight
+      })
+    }
+  },
+  {deep: true}
+)
 
 onMounted(() => {
   messages.value.push({
@@ -133,6 +147,7 @@ onMounted(() => {
     <hr>
     <strong>Ответ</strong>
     <div 
+      ref="refResponse"
       v-html="contentStore.modelResponse" 
       class="request__response form-control"
     />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick, unref } from 'vue';
 import { useAuthStore } from './store/authStore';
 import { useLogStore } from './store/logStore';
 import { AuthClient } from './api-client/AuthClient';
@@ -23,6 +23,7 @@ const currentScope = ref('')
 const showConsole = ref(true)
 const s = ref(0)
 const m = ref(0)
+const refConsole = ref<HTMLElement>()
 
 const allowGetToken = computed(() => {
   if (clientId.value != '' && clientSecret.value != '' && currentScope.value != '')
@@ -36,23 +37,19 @@ const elapsedTime = computed(() => {
   return minutes + ':' + seconds
 })
 
-let timer
+let interval
 const getAuthToken = async () => {
   if (allowGetToken.value && authClient){
     authStore.token = ''
     const response = await authClient.getToken(clientId.value, clientSecret.value, currentScope.value)
     if (response){
-      clearTimeout(timer)
+      clearInterval(interval)
       s.value = 59
       m.value = 29
       authStore.token = response.access_token
       localStorage.setItem('clientId', clientId.value)
       localStorage.setItem('clientSecret', clientSecret.value)
-      timer = setTimeout(() => {
-        alert('Необходимо обновить токен')
-        authStore.token = ''
-      }, 1000 * 60 * 30)
-      let interval = setInterval(() => {
+      interval = setInterval(() => {
         s.value -= 1
         if (s.value == 0){
           s.value = 59
@@ -79,6 +76,17 @@ const hrefDoc = () => {
 const copyTokenToClipboard = () => {
   navigator.clipboard.writeText(authStore.token)
 }
+watch(
+  () => {logStore.log.length},
+  () => {
+    nextTick(() => {
+      const element = unref(refConsole)
+      if (element)
+        element.scrollTop = element?.scrollHeight
+    })
+  },
+  {deep: true}
+)
 
 </script>
 
@@ -123,7 +131,7 @@ const copyTokenToClipboard = () => {
     </div>
     <div v-if="authStore.token" class="explorer__token-line">
       <p  class="explorer__token form-control">{{authStore.token}}</p>
-      <span>{{ elapsedTime }}</span>
+      <span style="margin: auto;">{{ elapsedTime }}</span>
       <button 
         @click="copyTokenToClipboard"
         class="btn btn-secondary"
@@ -151,7 +159,12 @@ const copyTokenToClipboard = () => {
       </button>
     </div>
     
-    <div v-if="showConsole" id="console" class="explorer__console-container form-control">
+    <div 
+      v-if="showConsole" 
+      id="console" 
+      ref="refConsole"
+      class="explorer__console-container form-control"
+    >
       <p v-html="log" v-for="log of logStore.log"></p>
     </div>
   </div>
@@ -163,7 +176,6 @@ const copyTokenToClipboard = () => {
   }
 
   .explorer{
-
     &__container{
       padding: 20px;
     }

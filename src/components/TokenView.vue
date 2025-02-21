@@ -18,7 +18,7 @@ onMounted(async () => {
   <div class="container">
     <div v-if="tokens">
       <p v-for="t of tokens.balance">
-      {{t.usage}}: доступно {{ t.value }} токенов
+        <strong>{{t.usage}}</strong>: доступно <strong>{{ t.value }}</strong> токенов
       </p>
     </div>
   </div>
